@@ -13,9 +13,10 @@
 
 ## TODO
 #### Features
-- [ ] Ability to enable/disable dampening
-- [ ] Ability to enable/disable interpolation
+- [x] Ability to enable/disable dampening
+- [x] Ability to enable/disable interpolation
 - [ ] Rewrite portaudio and ui into their own interfaces so they can be interfaced with independently
+- [ ] Add logging
 
 #### Fixes
 - [ ] Convert colours to uint32 manually
