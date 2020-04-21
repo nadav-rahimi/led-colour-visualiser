@@ -3,6 +3,7 @@ package lcv
 import (
 	"github.com/andlabs/ui"
 	_ "github.com/andlabs/ui/winmanifest"
+	"github.com/lucasb-eyer/go-colorful"
 )
 
 var coloured_square *ui.Area
@@ -51,6 +52,11 @@ func (areaHandler) DragBroken(a *ui.Area) {
 func (areaHandler) KeyEvent(a *ui.Area, ke *ui.AreaKeyEvent) (handled bool) {
 	// do nothing
 	return false
+}
+
+func changeColour(hue float64) {
+	*Current_colour_hex = boxColour(colorful.Hsv(hue, 1, 1)).UINT32()
+	coloured_square.QueueRedrawAll()
 }
 
 func SetupUI() {

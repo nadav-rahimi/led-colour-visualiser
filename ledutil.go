@@ -1,8 +1,10 @@
 package lcv
 
+import "log"
+
 // General Functions
 func chk(err error) {
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 }
