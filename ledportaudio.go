@@ -40,6 +40,8 @@ const (
 	smoothA float64 = 0.73
 )
 
+var sig = make(chan bool)
+
 // Port Audio Functions
 func StartPortAudio() {
 	//Initialise portaudio and create the audio buffer
@@ -86,6 +88,11 @@ func StartPortAudio() {
 	var old_freq = new(int)
 	var frequency = new(int)
 
+	//// Variables setup to record the data
+	//freqLog := make([]int, 1)
+	//dampLog := make([]int, 1)
+	//smthLog := make([]int, 1)
+
 	// Start processing the stream
 	for {
 		chk(stream.Read())
@@ -115,7 +122,14 @@ func StartPortAudio() {
 		hue := getHue(float64(*frequency))
 		changeColour(hue)
 
+		select {
+		case <-sig:
+			return
+		default:
+		}
 	}
+	chk(stream.Stop())
+
 }
 
 type boxColour colorful.Color

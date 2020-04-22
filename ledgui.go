@@ -78,11 +78,17 @@ func SetupUI() {
 	coloured_square = ui.NewArea(areaHandler{})
 	hbox.Append(coloured_square, true)
 
-	visualise_button := ui.NewButton("Button")
+	visualise_button := ui.NewButton("start")
 	visualise_button.OnClicked(func(b *ui.Button) {
 		go StartPortAudio()
 	})
 	hbox.Append(visualise_button, false)
+
+	stop_button := ui.NewButton("stop")
+	stop_button.OnClicked(func(b *ui.Button) {
+		sig <- true
+	})
+	hbox.Append(stop_button, false)
 
 	mainwin.Show()
 }
