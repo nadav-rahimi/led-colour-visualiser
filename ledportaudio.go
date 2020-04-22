@@ -1,12 +1,10 @@
 package lcv
 
 import (
+	"./fftsingle"
 	_ "github.com/andlabs/ui/winmanifest"
 	"github.com/gordonklaus/portaudio"
 	"github.com/lucasb-eyer/go-colorful"
-	//"github.com/mjibson/go-dsp/fft"
-	//"./dspsingle"
-	"./fftsingle"
 	"log"
 	"math/cmplx"
 	"strings"
@@ -33,16 +31,12 @@ const (
 	// needs to be used
 	bufferLengthUseful = bufferLength / 2
 	// The length of the array to use for damping
-	freqArrayL = 5
-	// The number of interpolation points to use
-	interpNum = 1
+	freqArrayL = 8
 )
 
 var (
 	// Whether to enable damping
 	damp bool = true
-	// Whether to enable interpolation
-	interp bool = true
 )
 
 // Port Audio Functions
@@ -86,11 +80,9 @@ func StartPortAudio() {
 	defer stream.Close()
 
 	// Prepare variables for the stream
-	//buffer_64 := make([]float64, bufferLength)
 	freqArray := make([]int, freqArrayL)
 	var freqCounter = new(int)
 	var frequency = new(int)
-	var oldFreq = new(int)
 
 	// Start processing the stream
 	for {
@@ -103,7 +95,6 @@ func StartPortAudio() {
 		var index int = maxFreqInd(&buffer_fft)
 
 		// Calculate the new frequency
-		*oldFreq = *frequency
 		updateFreq(frequency, fBinSize, index)
 		log.Print("Frequency: ", *frequency)
 
@@ -114,13 +105,7 @@ func StartPortAudio() {
 
 		// Interpolation
 		hue := getHue(float64(*frequency))
-		old_hue := getHue(float64(*oldFreq))
-
-		if interp {
-			interpolate(hue, old_hue)
-		} else {
-			changeColour(hue)
-		}
+		changeColour(hue)
 
 	}
 }
@@ -184,14 +169,5 @@ func updateFreq(f *int, binsize, i int) {
 	*f = binsize * i
 	if *f > fCap {
 		*f = fCap
-	}
-}
-
-// Interpolates the colour switching as opposed to directly switching colours
-func interpolate(nh, oh float64) {
-	var interpInc float64 = (nh - oh) / (interpNum + 1)
-
-	for i := 1; i <= (interpNum + 1); i++ {
-		changeColour(oh + interpInc*float64(i))
 	}
 }
