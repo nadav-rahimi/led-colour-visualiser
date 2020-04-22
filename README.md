@@ -19,12 +19,13 @@
 - [ ] Add logging
 
 #### Fixes
+- [ ] Implement a median filter
 - [ ] Convert colours to uint32 manually
-- [ ] Speed up interpolation and dampening
-- [ ] Reduce the processing of data to improve memory usage and speed
+- [x] Speed up interpolation and dampening
+- [x] Reduce the processing of data to improve memory usage and speed
 
 #### Ideas
-- [ ] Switch to float32?
+- [x] Switch to float32 (done by converting the dsputils library to float32)
 - [ ] Put emphasis on higher and lower frequencies
 - [ ] Make a custom smaller colour range which will lend to smoother transitions
 - [ ] Mode with frequency bands to reduce the number of colours used, e.g. for every 100 hz change colour

@@ -4,7 +4,9 @@ import (
 	_ "github.com/andlabs/ui/winmanifest"
 	"github.com/gordonklaus/portaudio"
 	"github.com/lucasb-eyer/go-colorful"
-	"github.com/mjibson/go-dsp/fft"
+	//"github.com/mjibson/go-dsp/fft"
+	//"./dspsingle"
+	"./fftsingle"
 	"log"
 	"math/cmplx"
 	"strings"
@@ -84,7 +86,7 @@ func StartPortAudio() {
 	defer stream.Close()
 
 	// Prepare variables for the stream
-	buffer_64 := make([]float64, bufferLength)
+	//buffer_64 := make([]float64, bufferLength)
 	freqArray := make([]int, freqArrayL)
 	var freqCounter = new(int)
 	var frequency = new(int)
@@ -94,13 +96,8 @@ func StartPortAudio() {
 	for {
 		chk(stream.Read())
 
-		// Convert the buffer values to float64
-		for i := 1; i < bufferLength; i++ {
-			buffer_64[i] = float64(buffer[i])
-		}
-
 		// Perform the FFT on the buffer
-		buffer_fft := fft.FFTReal(buffer_64)
+		buffer_fft := fftsingle.FFTReal(buffer)
 
 		// Get the index of the frequency with the largest magnitude
 		var index int = maxFreqInd(&buffer_fft)
@@ -167,12 +164,12 @@ func dampFreqs(f *int, farr *[]int, c *int) {
 }
 
 // From the fft array, the index of the frequency with the highest magnitude is returned
-func maxFreqInd(b *[]complex128) int {
+func maxFreqInd(b *[]complex64) int {
 	var max_v float64 = 0
 	var index int = 0
 
 	for i := 1; i < bufferLengthUseful; i++ {
-		e := cmplx.Abs((*b)[i])
+		e := cmplx.Abs(complex128((*b)[i]))
 		if e > max_v {
 			max_v = e
 			index = i
