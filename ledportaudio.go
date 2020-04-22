@@ -20,7 +20,7 @@ const (
 	usefulCap = 1000
 	// The total range of hues to use for the hsv colour spectrum
 	// e.g. the first 200 hues
-	totalHue = 300
+	totalHue = 360
 	// The hue colour at which the usefulCap is reached
 	fCapHue = totalHue - 10
 	// The length of the buffer used to store the audio data
@@ -31,12 +31,9 @@ const (
 	// needs to be used
 	bufferLengthUseful = bufferLength / 2
 	// The length of the array to use for damping
-	freqArrayL = 8
-)
-
-var (
+	freqArrayL = 10
 	// Whether to enable damping
-	damp bool = true
+	damp bool = false
 )
 
 // Port Audio Functions
