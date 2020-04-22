@@ -10,6 +10,7 @@
 - https://github.com/gordonklaus/portaudio (portaudio bindings for go)
 - https://github.com/lucasb-eyer/go-colorful (colour library)
 - https://github.com/mjibson/go-dsp/fft (fft)
+- https://github.com/wcharczuk/go-chart (the graphing tool)
 
 ## TODO
 #### Features
@@ -19,6 +20,7 @@
 - [ ] Ability to choose device to receive input from 
 
 #### Fixes
+- [ ] Simulate momentum i.e. if between the new and last frequency there is a big change in magnitude show it, if its smaller then smooth it out, this wil keep the peaks high while keeping the small changes small
 - [ ] Implement a median filter
 - [ ] Convert colours to uint32 manually
 - [x] Speed up interpolation and dampening
