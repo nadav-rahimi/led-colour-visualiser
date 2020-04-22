@@ -88,10 +88,13 @@ func StartPortAudio() {
 	var old_freq = new(int)
 	var frequency = new(int)
 
-	//// Variables setup to record the data
-	//freqLog := make([]int, 1)
-	//dampLog := make([]int, 1)
-	//smthLog := make([]int, 1)
+	// Variables setup to record the data
+	freqLog := make([]int, 1)
+	dampLog := make([]int, 1)
+	smthLog := make([]int, 1)
+
+	// Variables to break the loop
+	var breakLoop bool = false
 
 	// Start processing the stream
 	for {
@@ -107,15 +110,18 @@ func StartPortAudio() {
 		*old_freq = *frequency
 		updateFreq(frequency, fBinSize, index)
 		log.Print("Frequency: ", *frequency)
+		freqLog = append(freqLog, *frequency)
 
 		// Dampening and Smoothing
 		if smooth {
 			smoothFreqs(frequency, old_freq, smoothA)
 			log.Print("Smoothed Frequency: ", *frequency)
+			smthLog = append(smthLog, *frequency)
 		}
 		if damp {
 			dampFreqs(frequency, &freqArray, freqCounter)
 			log.Print("Damped Frequency: ", *frequency)
+			dampLog = append(dampLog, *frequency)
 		}
 
 		// Changing the colour
@@ -124,11 +130,21 @@ func StartPortAudio() {
 
 		select {
 		case <-sig:
-			return
+			breakLoop = true
 		default:
+		}
+
+		if breakLoop {
+			break
 		}
 	}
 	chk(stream.Stop())
+
+	log.Print("Frequency Log: ", freqLog)
+	log.Print("Smoothed Frequency Log: ", smthLog)
+	log.Print("Damped Frequency Log: ", dampLog)
+
+	createGraph(&freqLog, &smthLog, &dampLog)
 
 }
 
