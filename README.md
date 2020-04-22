@@ -16,6 +16,7 @@
 - [x] Ability to enable/disable dampening
 - [ ] Rewrite portaudio and ui into their own interfaces so they can be interfaced with independently
 - [ ] Add logging
+- [ ] Ability to choose device to receive input from 
 
 #### Fixes
 - [ ] Implement a median filter
@@ -24,6 +25,9 @@
 - [x] Reduce the processing of data to improve memory usage and speed
 
 #### Ideas
+- [ ] Graph the frequencies to visualise difference in output
+- [ ] Makes the peaks stand out more and make the rest more similar to reduce crazy frequency shifting at high and mid ranges where frequency changes constantly
+- [x] Add a smoothing algorithm in addition to dampening
 - [x] Switch to float32 (done by converting the dsputils library to float32)
 - [ ] Put emphasis on higher and lower frequencies
 - [ ] Make a custom smaller colour range which will lend to smoother transitions

@@ -13,14 +13,14 @@ import (
 // Constant and Variable Setup
 const (
 	// The maximum frequency the program will clamp to
-	fCap = 4000
+	fCap = 2500
 	// The upper range of frequencies the program considers useful.
 	// After this barrier, the colour changes very slowly in relation
 	// to change in frequency
-	usefulCap = 1000
+	usefulCap = 900
 	// The total range of hues to use for the hsv colour spectrum
 	// e.g. the first 200 hues
-	totalHue = 360
+	totalHue = 320
 	// The hue colour at which the usefulCap is reached
 	fCapHue = totalHue - 10
 	// The length of the buffer used to store the audio data
@@ -33,7 +33,11 @@ const (
 	// The length of the array to use for damping
 	freqArrayL = 10
 	// Whether to enable damping
-	damp bool = false
+	damp bool = true
+	// Whether to enable smoothing
+	smooth bool = true
+	// Smoothing alpha
+	smoothA float64 = 0.73
 )
 
 // Port Audio Functions
@@ -79,6 +83,7 @@ func StartPortAudio() {
 	// Prepare variables for the stream
 	freqArray := make([]int, freqArrayL)
 	var freqCounter = new(int)
+	var old_freq = new(int)
 	var frequency = new(int)
 
 	// Start processing the stream
@@ -92,15 +97,21 @@ func StartPortAudio() {
 		var index int = maxFreqInd(&buffer_fft)
 
 		// Calculate the new frequency
+		*old_freq = *frequency
 		updateFreq(frequency, fBinSize, index)
 		log.Print("Frequency: ", *frequency)
 
-		// Dampening
+		// Dampening and Smoothing
+		if smooth {
+			smoothFreqs(frequency, old_freq, smoothA)
+			log.Print("Smoothed Frequency: ", *frequency)
+		}
 		if damp {
 			dampFreqs(frequency, &freqArray, freqCounter)
+			log.Print("Damped Frequency: ", *frequency)
 		}
 
-		// Interpolation
+		// Changing the colour
 		hue := getHue(float64(*frequency))
 		changeColour(hue)
 
@@ -143,6 +154,11 @@ func dampFreqs(f *int, farr *[]int, c *int) {
 	}
 
 	*f = total / freqArrayL
+}
+
+// Smooths the frequencies, alternative damping method
+func smoothFreqs(f, of *int, alpha float64) {
+	(*f) = int(alpha*float64(*of) + (1-alpha)*float64(*f))
 }
 
 // From the fft array, the index of the frequency with the highest magnitude is returned
