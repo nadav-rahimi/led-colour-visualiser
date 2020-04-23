@@ -246,3 +246,26 @@ func (aa AudioAnalyser) StartAnalysis() {
 		createGraph(&aa.lg.freqLog, &aa.lg.smthLog, &aa.lg.dampLog)
 	}
 }
+
+//
+func newAudioAnalyser(f func(uint32), g string) *AudioAnalyser {
+	return &AudioAnalyser{
+		param: &AudioAnalysisParams{
+			fCap:               2500,
+			usefulCap:          1200,
+			totalHue:           320,
+			fCapHue:            310,
+			bufferLength:       1024 * 2,
+			bufferLengthUseful: 1024,
+			freqArrayL:         7,
+			damp:               true,
+			smooth:             true,
+			smoothA:            0.73,
+			creatVis:           true,
+			gradName:           g,
+		},
+		u:  &AudioAnalysisUnits{},
+		lg: &AudioAnalysisLogs{},
+		cb: f,
+	}
+}

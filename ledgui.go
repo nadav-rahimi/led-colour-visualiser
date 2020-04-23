@@ -84,25 +84,7 @@ func SetupUI() {
 
 	visualise_button := ui.NewButton("start")
 	visualise_button.OnClicked(func(b *ui.Button) {
-		pa := AudioAnalyser{
-			param: &AudioAnalysisParams{
-				fCap:               2500,
-				usefulCap:          1200,
-				totalHue:           320,
-				fCapHue:            310,
-				bufferLength:       1024 * 2,
-				bufferLengthUseful: 1024,
-				freqArrayL:         7,
-				damp:               true,
-				smooth:             true,
-				smoothA:            0.73,
-				creatVis:           true,
-				gradName:           "",
-			},
-			u:  &AudioAnalysisUnits{},
-			lg: &AudioAnalysisLogs{},
-			cb: colored_area.changeColourUINT32,
-		}
+		pa := newAudioAnalyser(colored_area.changeColourUINT32, "")
 		go pa.StartAnalysis()
 	})
 	hbox.Append(visualise_button, false)
