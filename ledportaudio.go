@@ -17,7 +17,7 @@ const (
 	// The upper range of frequencies the program considers useful.
 	// After this barrier, the colour changes very slowly in relation
 	// to change in frequency
-	usefulCap = 1100
+	usefulCap = 1200
 	// The total range of hues to use for the hsv colour spectrum
 	// e.g. the first 200 hues
 	totalHue = 320
@@ -38,12 +38,21 @@ const (
 	smooth bool = true
 	// Smoothing alpha
 	smoothA float64 = 0.73
+	// Decided where to create graph
+	creatVis bool = true
 )
 
 var sig = make(chan bool)
 
 // Port Audio Functions
 func StartPortAudio() {
+	// The "keypoints" of the gradient.
+	keypoints := GradientTable{
+		{MustParseHex("#020024"), 0.0},
+		{MustParseHex("#ad63f4"), 0.35},
+		{MustParseHex("#00d4ff"), 1.0},
+	}
+
 	//Initialise portaudio and create the audio buffer
 	portaudio.Initialize()
 	defer portaudio.Terminate()
@@ -130,7 +139,8 @@ func StartPortAudio() {
 
 		// Changing the colour
 		hue := getHue(float64(*frequency))
-		changeColour(hue)
+		//changeColour(hue)
+		changeColourCustom(hue, keypoints)
 
 		select {
 		case <-sig:
@@ -143,7 +153,9 @@ func StartPortAudio() {
 		}
 	}
 	chk(stream.Stop())
-	createGraph(&freqLog, &smthLog, &dampLog)
+	if creatVis {
+		createGraph(&freqLog, &smthLog, &dampLog)
+	}
 }
 
 type boxColour colorful.Color

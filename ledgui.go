@@ -59,6 +59,11 @@ func changeColour(hue float64) {
 	coloured_square.QueueRedrawAll()
 }
 
+func changeColourCustom(hue float64, gt GradientTable) {
+	*Current_colour_hex = boxColour(gt.GetInterpolatedColorFor(hue / totalHue)).UINT32()
+	coloured_square.QueueRedrawAll()
+}
+
 func SetupUI() {
 	mainwin := ui.NewWindow("LED Colour Visualiser", 480, 480, false)
 	mainwin.SetMargined(true)
