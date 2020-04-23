@@ -5,6 +5,25 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
+// BOX COLOUR IMPLEMENTATION
+// Box colour for converting to uint32
+type boxColour colorful.Color
+
+// Converts the box colour type to a uint32 value
+func (col boxColour) UINT32() uint32 {
+	var r = uint32(col.R*255.0 + 0.5)
+	var g = uint32(col.G*255.0 + 0.5)
+	var b = uint32(col.B*255.0 + 0.5)
+
+	r = r << 8
+	r = r + g
+	r = r << 8
+	r = r + b
+
+	return r
+}
+
+// GRADIENTS
 // This table contains the "keypoints" of the colorgradient you want to generate.
 // The position of each keypoint has to live in the range [0,1]
 type GradientTable []struct {

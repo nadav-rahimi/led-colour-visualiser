@@ -3,11 +3,12 @@ package lcv
 import (
 	"github.com/andlabs/ui"
 	_ "github.com/andlabs/ui/winmanifest"
-	"github.com/lucasb-eyer/go-colorful"
+	"math/rand"
 )
 
 var coloured_square *ui.Area
-var Current_colour_hex *uint32 = new(uint32)
+var rand_color = rand.Uint32()
+var colored_area = areaHandler{area_color: &rand_color}
 
 // UI Functions
 func mkSolidBrush(color uint32, alpha float64) *ui.DrawBrush {
@@ -23,11 +24,14 @@ func mkSolidBrush(color uint32, alpha float64) *ui.DrawBrush {
 	return brush
 }
 
-type areaHandler struct{}
+// Custom areaHandler interface
+type areaHandler struct {
+	area_color *uint32
+}
 
-func (areaHandler) Draw(a *ui.Area, p *ui.AreaDrawParams) {
+func (ah areaHandler) Draw(a *ui.Area, p *ui.AreaDrawParams) {
 	// fill the area with white
-	brush := mkSolidBrush(*Current_colour_hex, 1.0)
+	brush := mkSolidBrush(*ah.area_color, 1.0)
 	path := ui.DrawNewPath(ui.DrawFillModeWinding)
 	path.AddRectangle(0, 0, p.AreaWidth, p.AreaHeight)
 	path.End()
@@ -54,19 +58,8 @@ func (areaHandler) KeyEvent(a *ui.Area, ke *ui.AreaKeyEvent) (handled bool) {
 	return false
 }
 
-// Changes the colour of the coloured square box into a given
-// colour in the HSV colour spectrum based on a given hue
-// which varies from 0 to 360
-func changeColour(hue float64) {
-	*Current_colour_hex = boxColour(colorful.Hsv(hue, 1, 1)).UINT32()
-	coloured_square.QueueRedrawAll()
-}
-
-// Changes the colour of the coloured square box into a given
-// colour on a custom colour gradient based on a given hue
-// which varies from 0 to 360
-func changeColourCustom(hue float64, gt GradientTable) {
-	*Current_colour_hex = boxColour(gt.GetInterpolatedColorFor(hue / totalHue)).UINT32()
+func (ah areaHandler) changeColourUINT32(c uint32) {
+	*ah.area_color = c
 	coloured_square.QueueRedrawAll()
 }
 
@@ -86,12 +79,31 @@ func SetupUI() {
 	hbox := ui.NewHorizontalBox()
 	hbox.SetPadded(true)
 	mainwin.SetChild(hbox)
-	coloured_square = ui.NewArea(areaHandler{})
+	coloured_square = ui.NewArea(colored_area)
 	hbox.Append(coloured_square, true)
 
 	visualise_button := ui.NewButton("start")
 	visualise_button.OnClicked(func(b *ui.Button) {
-		go StartPortAudio()
+		pa := AudioAnalyser{
+			param: &AudioAnalysisParams{
+				fCap:               2500,
+				usefulCap:          1200,
+				totalHue:           320,
+				fCapHue:            310,
+				bufferLength:       1024 * 2,
+				bufferLengthUseful: 1024,
+				freqArrayL:         7,
+				damp:               true,
+				smooth:             true,
+				smoothA:            0.73,
+				creatVis:           true,
+				gradName:           "",
+			},
+			u:  &AudioAnalysisUnits{},
+			lg: &AudioAnalysisLogs{},
+			cb: colored_area.changeColourUINT32,
+		}
+		go pa.StartAnalysis()
 	})
 	hbox.Append(visualise_button, false)
 

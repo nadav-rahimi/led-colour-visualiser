@@ -2,6 +2,7 @@ package lcv
 
 import (
 	"./fftsingle"
+	"fmt"
 	_ "github.com/andlabs/ui/winmanifest"
 	"github.com/gordonklaus/portaudio"
 	"github.com/lucasb-eyer/go-colorful"
@@ -10,50 +11,146 @@ import (
 	"strings"
 )
 
-// Constant and Variable Setup
+//Constant and Variable Setup
 const (
-	// The maximum frequency the program will clamp to
-	fCap = 2500
-	// The upper range of frequencies the program considers useful.
-	// After this barrier, the colour changes very slowly in relation
-	// to change in frequency
-	usefulCap = 1200
-	// The total range of hues to use for the hsv colour spectrum
-	// e.g. the first 200 hues
 	totalHue = 320
-	// The hue colour at which the usefulCap is reached
-	fCapHue = totalHue - 10
-	// The length of the buffer used to store the audio data
-	bufferLength = 1024 * 2
-	// This is the length the program uses to find the frequency with
-	// the highest magnitude, this is half the buffer length because
-	// the FFT is mirrored along the centre, thus only half the length
-	// needs to be used
-	bufferLengthUseful = bufferLength / 2
-	// The length of the array to use for damping
-	freqArrayL = 7
-	// Whether to enable damping
-	damp bool = true
-	// Whether to enable smoothing
-	smooth bool = true
-	// Smoothing alpha
-	smoothA float64 = 0.73
-	// Should a gaph be created after visualisation is stopped stops
-	creatVis bool = true
 )
 
 var sig = make(chan bool)
 
-// Port Audio Functions
-func StartPortAudio() {
-	keypoints, err := getGradientTable("franklake")
-	chk(err)
+// The Audio Analyser
+type AudioAnalyser struct {
+	param *AudioAnalysisParams
+	u     *AudioAnalysisUnits
+	lg    *AudioAnalysisLogs
+	cb    func(uint32)
+}
+
+type AudioAnalysisParams struct {
+	// The maximum f the program will clamp to
+	fCap float64
+	// The upper range of frequencies the program considers useful.
+	// After this barrier, the colour changes very slowly in relation
+	// to change in f
+	usefulCap float64
+	// The total range of hues to use for the hsv colour spectrum
+	// e.g. the first 200 hues
+	totalHue float64
+	// The hue colour at which the usefulCap is reached
+	fCapHue float64
+	// The length of the buffer used to store the audio data
+	bufferLength int
+	// This is the length the program uses to find the f with
+	// the highest magnitude, this is half the buffer length because
+	// the FFT is mirrored along the centre, thus only half the length
+	// needs to be used
+	bufferLengthUseful float64
+	// The length of the array to use for damping
+	freqArrayL int
+	// Whether to enable damping
+	damp bool
+	// Whether to enable smoothing
+	smooth bool
+	// Smoothing alpha
+	smoothA float64
+	// Should a graph be created after visualisation is stopped stops
+	creatVis bool
+	// The name of the gradient to use for audio colouring
+	gradName string
+}
+
+type AudioAnalysisUnits struct {
+	farr     []int
+	c        *int
+	old_freq *int
+	f        *int
+	index    int
+	fBinSize int
+	bfft     []complex64
+	gtUsed   bool
+	aaGT     GradientTable
+}
+
+type AudioAnalysisLogs struct {
+	freqLog []int
+	dampLog []int
+	smthLog []int
+}
+
+// From the fft array, the index of the f with the highest magnitude is returned
+func (aa AudioAnalyser) maxFreqInd() int {
+	var max_v float64 = 0
+	var index int = 0
+
+	for i := 1; i < int(aa.param.bufferLengthUseful); i++ {
+		e := cmplx.Abs(complex128(aa.u.bfft[i]))
+		if e > max_v {
+			max_v = e
+			index = i
+		}
+	}
+
+	return index
+}
+
+//
+func (aa AudioAnalyser) colourUINT32() uint32 {
+	var h float64
+	if float64(*aa.u.f) > aa.param.usefulCap {
+		h = aa.param.fCapHue + (aa.param.totalHue-aa.param.fCapHue)*(float64(*aa.u.f)/aa.param.fCap)
+	} else {
+		h = float64(*aa.u.f) / aa.param.usefulCap * aa.param.fCapHue
+	}
+
+	if aa.u.gtUsed {
+		return boxColour(aa.u.aaGT.GetInterpolatedColorFor(h / aa.param.totalHue)).UINT32()
+	}
+	return boxColour(colorful.Hsv(h, 1, 1)).UINT32()
+}
+
+// Takes in the current f and damps it based on past frequencies
+func (aa AudioAnalyser) dampFreqs() {
+	(aa.u.farr)[*aa.u.c] = *aa.u.f
+	*aa.u.c++
+	*aa.u.c = *aa.u.c % aa.param.freqArrayL
+
+	var total int = 0
+	for _, value := range aa.u.farr {
+		total += value
+	}
+
+	*aa.u.f = total / aa.param.freqArrayL
+}
+
+// Smooths the frequencies, alternative damping method
+func (aa AudioAnalyser) smoothFreqs(alpha float64) {
+	(*aa.u.f) = int(alpha*float64(*aa.u.old_freq) + (1-alpha)*float64(*aa.u.f))
+}
+
+// Updates the f with the value of the f with the highest magnitude
+func (aa AudioAnalyser) updateFreq() {
+	*aa.u.f = aa.u.fBinSize * aa.u.index
+	if float64(*aa.u.f) > aa.param.fCap {
+		*aa.u.f = int(aa.param.fCap)
+	}
+}
+
+//
+func (aa AudioAnalyser) StartAnalysis() {
+	// Check the gradient table exists if one is to be used
+	fmt.Println(aa.param.gradName)
+	if len(aa.param.gradName) > 0 {
+		var err error
+		aa.u.aaGT, err = getGradientTable(aa.param.gradName)
+		chk(err)
+		aa.u.gtUsed = true
+	}
 
 	//Initialise portaudio and create the audio buffer
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
-	buffer := make([]float32, bufferLength)
+	buffer := make([]float32, aa.param.bufferLength)
 
 	// TODO: function for retrieving the devices
 	// Get the Virtual Audio Cable input device
@@ -70,14 +167,14 @@ func StartPortAudio() {
 			}
 		}
 	}
-	//log.Println("The input device is:  ", inpDev.Name)
+	log.Println("The input device is:  ", inpDev.Name)
 
 	// Creating parameters
 	p := portaudio.LowLatencyParameters(inpDev, outDev)
 	p.FramesPerBuffer = len(buffer)
 	var sampleRate = p.SampleRate
 	var maxInfo = sampleRate / 2
-	var fBinSize = int(maxInfo / bufferLengthUseful)
+	aa.u.fBinSize = int(maxInfo / aa.param.bufferLengthUseful)
 
 	// Create the stream
 	stream, err := portaudio.OpenStream(p, buffer)
@@ -88,15 +185,15 @@ func StartPortAudio() {
 	defer stream.Close()
 
 	// Prepare variables for the stream
-	freqArray := make([]int, freqArrayL)
-	var freqCounter = new(int)
-	var old_freq = new(int)
-	var frequency = new(int)
+	aa.u.farr = make([]int, aa.param.freqArrayL)
+	aa.u.c = new(int)
+	aa.u.old_freq = new(int)
+	aa.u.f = new(int)
 
 	// Variables setup to record the data
-	freqLog := make([]int, 1)
-	dampLog := make([]int, 1)
-	smthLog := make([]int, 1)
+	aa.lg.freqLog = make([]int, 1)
+	aa.lg.dampLog = make([]int, 1)
+	aa.lg.smthLog = make([]int, 1)
 
 	// Variables to break the loop
 	var breakLoop bool = false
@@ -106,38 +203,34 @@ func StartPortAudio() {
 		chk(stream.Read())
 
 		// Perform the FFT on the buffer
-		buffer_fft := fftsingle.FFTReal(buffer)
+		aa.u.bfft = fftsingle.FFTReal(buffer)
 
-		// Get the index of the frequency with the largest magnitude
-		var index int = maxFreqInd(&buffer_fft)
+		// Get the index of the f with the largest magnitude
+		aa.u.index = aa.maxFreqInd()
 
 		// Calculate the new frequency
-		*old_freq = *frequency
-		updateFreq(frequency, fBinSize, index)
-		log.Print("Frequency: ", *frequency)
-		freqLog = append(freqLog, *frequency)
+		*aa.u.old_freq = *aa.u.f
+		aa.updateFreq()
+		log.Print("Frequency: ", *aa.u.f)
+		aa.lg.freqLog = append(aa.lg.freqLog, *aa.u.f)
 
 		// Dampening and Smoothing
-		if smooth {
-			smoothFreqs(frequency, old_freq, smoothA)
-			log.Print("Smoothed Frequency: ", *frequency)
-			smthLog = append(smthLog, *frequency)
-
-			smoothFreqs(frequency, old_freq, 0.3)
-			log.Print("Smoothed Frequency: ", *frequency)
-			//dampLog = append(dampLog, *frequency)
+		if aa.param.smooth {
+			aa.smoothFreqs(aa.param.smoothA)
+			aa.smoothFreqs(0.3)
+			log.Print("Smoothed Frequency: ", *aa.u.f)
+			aa.lg.smthLog = append(aa.lg.smthLog, *aa.u.f)
 		}
-		if damp {
-			dampFreqs(frequency, &freqArray, freqCounter)
-			log.Print("Damped Frequency: ", *frequency)
-			dampLog = append(dampLog, *frequency)
+		if aa.param.damp {
+			aa.dampFreqs()
+			log.Print("Damped Frequency: ", *aa.u.f)
+			aa.lg.dampLog = append(aa.lg.dampLog, *aa.u.f)
 		}
 
-		// Changing the colour
-		hue := getHue(float64(*frequency))
-		//changeColour(hue)
-		changeColourCustom(hue, keypoints)
+		// Calling the callback function with the colour value
+		aa.cb(aa.colourUINT32())
 
+		// Make sig part of port audio
 		select {
 		case <-sig:
 			breakLoop = true
@@ -149,74 +242,7 @@ func StartPortAudio() {
 		}
 	}
 	chk(stream.Stop())
-	if creatVis {
-		createGraph(&freqLog, &smthLog, &dampLog)
-	}
-}
-
-type boxColour colorful.Color
-
-// Converts the box colour type to a uint32 value
-func (col boxColour) UINT32() uint32 {
-	var r = uint32(col.R*255.0 + 0.5)
-	var g = uint32(col.G*255.0 + 0.5)
-	var b = uint32(col.B*255.0 + 0.5)
-
-	r = r << 8
-	r = r + g
-	r = r << 8
-	r = r + b
-
-	return r
-}
-
-// Calculates the hue of the visualised frequency on the hsv scale
-func getHue(f float64) float64 {
-	if f > usefulCap {
-		return fCapHue + (totalHue-fCapHue)*float64(f)/float64(fCap)
-	}
-	return float64(f) / float64(usefulCap) * fCapHue
-}
-
-// Takes in the current frequency and damps it based on past frequencies
-func dampFreqs(f *int, farr *[]int, c *int) {
-	(*farr)[*c] = *f
-	*c++
-	*c = *c % freqArrayL
-
-	var total int = 0
-	for _, value := range *farr {
-		total += value
-	}
-
-	*f = total / freqArrayL
-}
-
-// Smooths the frequencies, alternative damping method
-func smoothFreqs(f, of *int, alpha float64) {
-	(*f) = int(alpha*float64(*of) + (1-alpha)*float64(*f))
-}
-
-// From the fft array, the index of the frequency with the highest magnitude is returned
-func maxFreqInd(b *[]complex64) int {
-	var max_v float64 = 0
-	var index int = 0
-
-	for i := 1; i < bufferLengthUseful; i++ {
-		e := cmplx.Abs(complex128((*b)[i]))
-		if e > max_v {
-			max_v = e
-			index = i
-		}
-	}
-
-	return index
-}
-
-// Updates the frequency with the value of the frequency with the highest magnitude
-func updateFreq(f *int, binsize, i int) {
-	*f = binsize * i
-	if *f > fCap {
-		*f = fCap
+	if aa.param.creatVis {
+		createGraph(&aa.lg.freqLog, &aa.lg.smthLog, &aa.lg.dampLog)
 	}
 }

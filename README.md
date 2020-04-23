@@ -27,6 +27,8 @@
 - [x] Speed up interpolation and dampening
 - [ ] Modularise code into functions
 - [ ] Implement a median/kalman filter
+- [ ] Remove the use of too many pointers
+- [ ] Reduce type conversions as much as possible
 - [ ] Set icon for the .exe - https://stackoverflow.com/questions/25602600/how-do-you-set-the-application-icon-in-golang
 
 

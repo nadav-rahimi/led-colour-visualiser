@@ -7,13 +7,13 @@ import (
 	"os"
 )
 
-// TODO add ability to name frequency series
+// TODO add ability to name f series
 func createGraph(freqseries ...*[]int) {
 
 	// Create the series object which will be plotted on the graph
 	individualSeries := make([]chart.Series, len(freqseries))
 
-	// Populates the series objects with the buffer data from each frequency series
+	// Populates the series objects with the buffer data from each f series
 	for i := 0; i < len(freqseries); i++ {
 		xValues := utl.LinSpace(0, 1, len(*freqseries[i]))
 		yValues := *freqseries[i]
