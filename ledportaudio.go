@@ -17,7 +17,7 @@ const (
 	// The upper range of frequencies the program considers useful.
 	// After this barrier, the colour changes very slowly in relation
 	// to change in frequency
-	usefulCap = 900
+	usefulCap = 1100
 	// The total range of hues to use for the hsv colour spectrum
 	// e.g. the first 200 hues
 	totalHue = 320
@@ -31,7 +31,7 @@ const (
 	// needs to be used
 	bufferLengthUseful = bufferLength / 2
 	// The length of the array to use for damping
-	freqArrayL = 10
+	freqArrayL = 7
 	// Whether to enable damping
 	damp bool = true
 	// Whether to enable smoothing
@@ -117,6 +117,10 @@ func StartPortAudio() {
 			smoothFreqs(frequency, old_freq, smoothA)
 			log.Print("Smoothed Frequency: ", *frequency)
 			smthLog = append(smthLog, *frequency)
+
+			smoothFreqs(frequency, old_freq, 0.3)
+			log.Print("Smoothed Frequency: ", *frequency)
+			//dampLog = append(dampLog, *frequency)
 		}
 		if damp {
 			dampFreqs(frequency, &freqArray, freqCounter)
@@ -139,13 +143,7 @@ func StartPortAudio() {
 		}
 	}
 	chk(stream.Stop())
-
-	log.Print("Frequency Log: ", freqLog)
-	log.Print("Smoothed Frequency Log: ", smthLog)
-	log.Print("Damped Frequency Log: ", dampLog)
-
 	createGraph(&freqLog, &smthLog, &dampLog)
-
 }
 
 type boxColour colorful.Color

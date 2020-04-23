@@ -40,8 +40,8 @@ func createGraph(freqseries ...*[]int) {
 
 	graph.XAxis.TickStyle.Hidden = true
 	graph.YAxisSecondary.Style.Hidden = true
-	graph.Height = 400 * 20
-	graph.Width = 1024 * 20
+	graph.Height = 400 * 3
+	graph.Width = 1024 * 3
 
 	f, _ := os.Create("output.png")
 	defer f.Close()
