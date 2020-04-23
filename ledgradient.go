@@ -1,6 +1,9 @@
 package lcv
 
-import "github.com/lucasb-eyer/go-colorful"
+import (
+	"errors"
+	"github.com/lucasb-eyer/go-colorful"
+)
 
 // This table contains the "keypoints" of the colorgradient you want to generate.
 // The position of each keypoint has to live in the range [0,1]
@@ -35,4 +38,44 @@ func MustParseHex(s string) colorful.Color {
 		panic("MustParseHex: " + err.Error())
 	}
 	return c
+}
+
+// To get a gradient choose use this function
+func getGradientTable(s string) (GradientTable, error) {
+	switch s {
+	case "shabjdeed":
+		return GradientTable{
+			{MustParseHex("#020024"), 0.0},
+			{MustParseHex("#ad63f4"), 0.35},
+			{MustParseHex("#00d4ff"), 1.0},
+		}, nil
+	case "weeknd":
+		return GradientTable{
+			//{MustParseHex("#ff0202"), 0.0},
+			//{MustParseHex("#ff0258"), 0.03},
+			{MustParseHex("#5202fc"), 0.00},
+			{MustParseHex("#ff0074"), 0.9},
+			//{MustParseHex("#ff0000"), 1.0},
+		}, nil
+	case "smiths":
+		return GradientTable{
+			{MustParseHex("#ff0202"), 0},
+			{MustParseHex("#ff0202"), 0.1},
+			{MustParseHex("#ff8d00"), 0.3},
+			{MustParseHex("#fff400"), 0.5},
+			{MustParseHex("#f1ff00"), 0.8},
+			{MustParseHex("#A4ff00"), 1.0},
+		}, nil
+	case "franklake":
+		return GradientTable{
+			//{MustParseHex("#007dfe"), 0},
+			{MustParseHex("#ff7303"), 0},
+			{MustParseHex("#ff7303"), 0.1},
+			{MustParseHex("#ffa7e1"), 0.5},
+			{MustParseHex("#faf4e6"), 1.0},
+		}, nil
+	}
+
+	return GradientTable{}, errors.New("Gradient name incorrect")
+
 }

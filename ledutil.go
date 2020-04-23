@@ -2,7 +2,7 @@ package lcv
 
 import "log"
 
-// General Functions
+// Error checking function
 func chk(err error) {
 	if err != nil {
 		log.Panic(err)

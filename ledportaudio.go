@@ -38,7 +38,7 @@ const (
 	smooth bool = true
 	// Smoothing alpha
 	smoothA float64 = 0.73
-	// Decided where to create graph
+	// Should a gaph be created after visualisation is stopped stops
 	creatVis bool = true
 )
 
@@ -46,12 +46,8 @@ var sig = make(chan bool)
 
 // Port Audio Functions
 func StartPortAudio() {
-	// The "keypoints" of the gradient.
-	keypoints := GradientTable{
-		{MustParseHex("#020024"), 0.0},
-		{MustParseHex("#ad63f4"), 0.35},
-		{MustParseHex("#00d4ff"), 1.0},
-	}
+	keypoints, err := getGradientTable("franklake")
+	chk(err)
 
 	//Initialise portaudio and create the audio buffer
 	portaudio.Initialize()

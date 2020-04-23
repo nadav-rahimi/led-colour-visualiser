@@ -1,17 +1,19 @@
 package lcv
 
 import (
-	"fmt"
 	"github.com/cpmech/gosl/utl"
 	"github.com/wcharczuk/go-chart"
 	"log"
 	"os"
 )
 
+// TODO add ability to name frequency series
 func createGraph(freqseries ...*[]int) {
 
+	// Create the series object which will be plotted on the graph
 	individualSeries := make([]chart.Series, len(freqseries))
 
+	// Populates the series objects with the buffer data from each frequency series
 	for i := 0; i < len(freqseries); i++ {
 		xValues := utl.LinSpace(0, 1, len(*freqseries[i]))
 		yValues := *freqseries[i]
@@ -22,27 +24,30 @@ func createGraph(freqseries ...*[]int) {
 		}
 
 		individualSeries[i] = chart.ContinuousSeries{
-			Name:    fmt.Sprintf("%vhuuuuuu", i),
 			XValues: xValues,
 			YValues: yValues64,
 		}
 	}
 
+	// Creates the graph object and populates it with the series
 	graph := chart.Chart{
 		XAxis: chart.XAxis{
 			Name: "",
 		},
 		YAxis: chart.YAxis{
-			Name: "Frequency",
+			Name: "Frequency (Hz)",
 		},
 		Series: individualSeries,
 	}
 
+	// Styles the graph
 	graph.XAxis.TickStyle.Hidden = true
 	graph.YAxisSecondary.Style.Hidden = true
+	// TODO make height and width dynamic
 	graph.Height = 400 * 3
 	graph.Width = 1024 * 3
 
+	// Render the graph to an output file
 	f, _ := os.Create("output.png")
 	defer f.Close()
 	graph.Render(chart.PNG, f)

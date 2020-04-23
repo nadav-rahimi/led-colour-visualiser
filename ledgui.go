@@ -54,11 +54,17 @@ func (areaHandler) KeyEvent(a *ui.Area, ke *ui.AreaKeyEvent) (handled bool) {
 	return false
 }
 
+// Changes the colour of the coloured square box into a given
+// colour in the HSV colour spectrum based on a given hue
+// which varies from 0 to 360
 func changeColour(hue float64) {
 	*Current_colour_hex = boxColour(colorful.Hsv(hue, 1, 1)).UINT32()
 	coloured_square.QueueRedrawAll()
 }
 
+// Changes the colour of the coloured square box into a given
+// colour on a custom colour gradient based on a given hue
+// which varies from 0 to 360
 func changeColourCustom(hue float64, gt GradientTable) {
 	*Current_colour_hex = boxColour(gt.GetInterpolatedColorFor(hue / totalHue)).UINT32()
 	coloured_square.QueueRedrawAll()

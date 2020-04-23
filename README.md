@@ -15,24 +15,24 @@
 ## TODO
 #### Features
 - [x] Ability to enable/disable dampening
+- [x] Abiity for custom colour range
 - [ ] Rewrite portaudio and ui into their own interfaces so they can be interfaced with independently
 - [ ] Add logging
 - [ ] Ability to choose device to receive input from 
-- [ ] Abiity for custom colour range
 - [ ] Send the data via bluetooth to arduino
+- [ ] Ability to disable graphing
 
 #### Fixes
-- [ ] Simulate momentum i.e. if between the new and last frequency there is a big change in magnitude show it, if its smaller then smooth it out, this wil keep the peaks high while keeping the small changes small
-- [ ] Implement a median filter
+- [x] Reduce the processing of data to improve memory usage and speed- [ ] Document the whole codebase
 - [x] Speed up interpolation and dampening
-- [x] Reduce the processing of data to improve memory usage and speed
+- [ ] Modularise code into functions
+- [ ] Implement a median/kalman filter
+- [ ] Set icon for the .exe - https://stackoverflow.com/questions/25602600/how-do-you-set-the-application-icon-in-golang
+
 
 #### Ideas
 - [x] Graph the frequencies to visualise difference in output
-- [ ] Makes the peaks stand out more and make the rest more similar to reduce crazy frequency shifting at high and mid ranges where frequency changes constantly
 - [x] Add a smoothing algorithm in addition to dampening
 - [x] Switch to float32 (done by converting the dsputils library to float32)
-- [ ] Put emphasis on higher and lower frequencies
-- [x] Make a custom smaller colour range 
-- [ ] Mode with frequency bands to reduce the number of colours used, e.g. for every 100 hz change colour
-
+- [ ] If custom colour range then likely no need for damping (so disable damping)
+- [ ] Damp small changes in frequency but dont damp large changes in frequency, this will stop the bass visualisation lagging in Savage, Nights etc.
