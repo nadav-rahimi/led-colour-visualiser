@@ -9,14 +9,8 @@ import (
 	"log"
 	"math/cmplx"
 	"strings"
+	"time"
 )
-
-//Constant and Variable Setup
-const (
-	totalHue = 320
-)
-
-var sig = make(chan bool)
 
 // The Audio Analyser
 type AudioAnalyser struct {
@@ -26,6 +20,7 @@ type AudioAnalyser struct {
 	cb    func(uint32)
 }
 
+// Parameters for setting up the analyser
 type AudioAnalysisParams struct {
 	// The maximum f the program will clamp to
 	fCap float64
@@ -59,6 +54,7 @@ type AudioAnalysisParams struct {
 	gradName string
 }
 
+// Stores values the analyser uses during computation
 type AudioAnalysisUnits struct {
 	farr     []int
 	c        *int
@@ -69,8 +65,11 @@ type AudioAnalysisUnits struct {
 	bfft     []complex64
 	gtUsed   bool
 	aaGT     GradientTable
+	// Stop signal
+	stopSig chan bool
 }
 
+// The slices which the analyser logs to for graphing
 type AudioAnalysisLogs struct {
 	freqLog []int
 	dampLog []int
@@ -93,7 +92,7 @@ func (aa AudioAnalyser) maxFreqInd() int {
 	return index
 }
 
-//
+// Converts the frequency calculated to a uint32 colour
 func (aa AudioAnalyser) colourUINT32() uint32 {
 	var h float64
 	if float64(*aa.u.f) > aa.param.usefulCap {
@@ -135,7 +134,7 @@ func (aa AudioAnalyser) updateFreq() {
 	}
 }
 
-//
+// Begins analysing audio from an audio stream
 func (aa AudioAnalyser) StartAnalysis() {
 	// Check the gradient table exists if one is to be used
 	fmt.Println(aa.param.gradName)
@@ -198,6 +197,7 @@ func (aa AudioAnalyser) StartAnalysis() {
 	// Variables to break the loop
 	var breakLoop bool = false
 
+	startTime := time.Now()
 	// Start processing the stream
 	for {
 		chk(stream.Read())
@@ -232,7 +232,7 @@ func (aa AudioAnalyser) StartAnalysis() {
 
 		// Make sig part of port audio
 		select {
-		case <-sig:
+		case <-aa.u.stopSig:
 			breakLoop = true
 		default:
 		}
@@ -241,13 +241,15 @@ func (aa AudioAnalyser) StartAnalysis() {
 			break
 		}
 	}
+	endTime := time.Now()
 	chk(stream.Stop())
 	if aa.param.creatVis {
-		createGraph(&aa.lg.freqLog, &aa.lg.smthLog, &aa.lg.dampLog)
+		names := []string{"Original F", "Smoothed F", "Damped F"}
+		createGraph(names, endTime.Sub(startTime), &aa.lg.freqLog, &aa.lg.smthLog, &aa.lg.dampLog)
 	}
 }
 
-//
+// Generates a new analyser object with default configuration
 func newAudioAnalyser(f func(uint32), g string) *AudioAnalyser {
 	return &AudioAnalyser{
 		param: &AudioAnalysisParams{
@@ -264,7 +266,9 @@ func newAudioAnalyser(f func(uint32), g string) *AudioAnalyser {
 			creatVis:           true,
 			gradName:           g,
 		},
-		u:  &AudioAnalysisUnits{},
+		u: &AudioAnalysisUnits{
+			stopSig: make(chan bool),
+		},
 		lg: &AudioAnalysisLogs{},
 		cb: f,
 	}

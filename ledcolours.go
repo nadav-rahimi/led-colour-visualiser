@@ -6,7 +6,8 @@ import (
 )
 
 // BOX COLOUR IMPLEMENTATION
-// Box colour for converting to uint32
+// Box colour type which implements methods for converting the colorful type
+// straight to uint32
 type boxColour colorful.Color
 
 // Converts the box colour type to a uint32 value
@@ -59,7 +60,7 @@ func MustParseHex(s string) colorful.Color {
 	return c
 }
 
-// To get a gradient choose use this function
+// Functions which returns a gradient function based on its name
 func getGradientTable(s string) (GradientTable, error) {
 	switch s {
 	case "shabjdeed":

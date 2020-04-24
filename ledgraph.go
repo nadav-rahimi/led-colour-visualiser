@@ -5,10 +5,12 @@ import (
 	"github.com/wcharczuk/go-chart"
 	"log"
 	"os"
+	"time"
 )
 
-// TODO add ability to name f series
-func createGraph(freqseries ...*[]int) {
+// Renders a graph given the names of each series, the elapsed time of
+// streaming and each frequency series
+func createGraph(seriesnames []string, elapsed_t time.Duration, freqseries ...*[]int) {
 
 	// Create the series object which will be plotted on the graph
 	individualSeries := make([]chart.Series, len(freqseries))
@@ -24,6 +26,7 @@ func createGraph(freqseries ...*[]int) {
 		}
 
 		individualSeries[i] = chart.ContinuousSeries{
+			Name:    seriesnames[i],
 			XValues: xValues,
 			YValues: yValues64,
 		}
@@ -31,9 +34,7 @@ func createGraph(freqseries ...*[]int) {
 
 	// Creates the graph object and populates it with the series
 	graph := chart.Chart{
-		XAxis: chart.XAxis{
-			Name: "",
-		},
+		XAxis: chart.XAxis{},
 		YAxis: chart.YAxis{
 			Name: "Frequency (Hz)",
 		},
@@ -41,17 +42,22 @@ func createGraph(freqseries ...*[]int) {
 	}
 
 	// Styles the graph
+	graph.Height = 400 * 3
+	graph.Width = int(60 * elapsed_t.Seconds())
 	graph.XAxis.TickStyle.Hidden = true
 	graph.YAxisSecondary.Style.Hidden = true
-	// TODO make height and width dynamic
-	graph.Height = 400 * 3
-	graph.Width = 1024 * 3
+
+	// Adding the legend to the graph
+	graph.Elements = []chart.Renderable{
+		chart.Legend(&graph),
+	}
 
 	// Render the graph to an output file
 	f, _ := os.Create("output.png")
 	defer f.Close()
-	graph.Render(chart.PNG, f)
+	err := graph.Render(chart.PNG, f)
+	chk(err)
 
-	log.Printf("Printing the graph done")
+	log.Printf("Graph rendered to file successfully")
 
 }

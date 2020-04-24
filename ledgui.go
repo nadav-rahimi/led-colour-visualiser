@@ -6,9 +6,17 @@ import (
 	"math/rand"
 )
 
+// Box wrapper which surrounds the square changing colour
 var coloured_square *ui.Area
+
+// Random colour generated to be fed to the area handler
 var rand_color = rand.Uint32()
+
+// The square which changes colour
 var colored_area = areaHandler{area_color: &rand_color}
+
+// The audio analyser which the ui uses
+var aA = newAudioAnalyser(colored_area.changeColourUINT32, "")
 
 // UI Functions
 func mkSolidBrush(color uint32, alpha float64) *ui.DrawBrush {
@@ -58,11 +66,13 @@ func (areaHandler) KeyEvent(a *ui.Area, ke *ui.AreaKeyEvent) (handled bool) {
 	return false
 }
 
+// Changes the colour of the canvas area based on a uint32 value
 func (ah areaHandler) changeColourUINT32(c uint32) {
 	*ah.area_color = c
 	coloured_square.QueueRedrawAll()
 }
 
+// Initialises and constructs the UI window
 func SetupUI() {
 	mainwin := ui.NewWindow("LED Colour Visualiser", 480, 480, false)
 	mainwin.SetMargined(true)
@@ -84,14 +94,13 @@ func SetupUI() {
 
 	visualise_button := ui.NewButton("start")
 	visualise_button.OnClicked(func(b *ui.Button) {
-		pa := newAudioAnalyser(colored_area.changeColourUINT32, "")
-		go pa.StartAnalysis()
+		go aA.StartAnalysis()
 	})
 	hbox.Append(visualise_button, false)
 
 	stop_button := ui.NewButton("stop")
 	stop_button.OnClicked(func(b *ui.Button) {
-		sig <- true
+		aA.u.stopSig <- true
 	})
 	hbox.Append(stop_button, false)
 

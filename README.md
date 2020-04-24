@@ -16,16 +16,17 @@
 #### Features
 - [x] Ability to enable/disable dampening
 - [x] Abiity for custom colour range
-- [ ] Rewrite portaudio and ui into their own interfaces so they can be interfaced with independently
 - [ ] Add logging
 - [ ] Ability to choose device to receive input from 
 - [ ] Send the data via bluetooth to arduino
-- [ ] Ability to disable graphing
+- [x] Ability to disable graphing
+- [ ] Create gui for program to decide which option to enable/disable and ability to choose gradients and ability to choose input device
 
 #### Fixes
 - [x] Reduce the processing of data to improve memory usage and speed- [ ] Document the whole codebase
 - [x] Speed up interpolation and dampening
-- [ ] Modularise code into functions
+- [x] Modularise code into functions
+- [ ] Finish documentation
 - [ ] Implement a median/kalman filter
 - [ ] Remove the use of too many pointers
 - [ ] Reduce type conversions as much as possible
@@ -36,5 +37,4 @@
 - [x] Graph the frequencies to visualise difference in output
 - [x] Add a smoothing algorithm in addition to dampening
 - [x] Switch to float32 (done by converting the dsputils library to float32)
-- [ ] If custom colour range then likely no need for damping (so disable damping)
 - [ ] Damp small changes in frequency but dont damp large changes in frequency, this will stop the bass visualisation lagging in Savage, Nights etc.
