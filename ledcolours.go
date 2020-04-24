@@ -86,6 +86,17 @@ func getGradientTable(s string) (GradientTable, error) {
 			{MustParseHex("#f1ff00"), 0.8},
 			{MustParseHex("#A4ff00"), 1.0},
 		}, nil
+	case "starboy":
+		return GradientTable{
+			//{MustParseHex("#1a0406"), 0.0},
+			{MustParseHex("#1152cb"), 0.0},
+			{MustParseHex("#1152cb"), 0.05},
+			{MustParseHex("#e4032f"), 0.1},
+			{MustParseHex("#f6c507"), 0.55},
+			//{MustParseHex("#faf4e6"), 0.7},
+			{MustParseHex("#faf6cb"), 1.0},
+			//{MustParseHex("#faf4e6"), 1.0},
+		}, nil
 	case "franklake":
 		return GradientTable{
 			//{MustParseHex("#007dfe"), 0},

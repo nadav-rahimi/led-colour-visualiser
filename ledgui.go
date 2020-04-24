@@ -16,7 +16,7 @@ var rand_color = rand.Uint32()
 var colored_area = areaHandler{area_color: &rand_color}
 
 // The audio analyser which the ui uses
-var aA = newAudioAnalyser(colored_area.changeColourUINT32, "")
+var aA = newAudioAnalyser(colored_area.changeColourUINT32, "starboy")
 
 // UI Functions
 func mkSolidBrush(color uint32, alpha float64) *ui.DrawBrush {

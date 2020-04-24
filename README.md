@@ -16,7 +16,7 @@
 #### Features
 - [x] Ability to enable/disable dampening
 - [x] Abiity for custom colour range
-- [ ] Add logging
+- [x] Add logging
 - [ ] Ability to choose device to receive input from 
 - [ ] Send the data via bluetooth to arduino
 - [x] Ability to disable graphing

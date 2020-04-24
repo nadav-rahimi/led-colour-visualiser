@@ -151,7 +151,6 @@ func (aa AudioAnalyser) StartAnalysis() {
 
 	buffer := make([]float32, aa.param.bufferLength)
 
-	// TODO: function for retrieving the devices
 	// Get the Virtual Audio Cable input device
 	devices, err := portaudio.Devices()
 	chk(err)
@@ -259,11 +258,11 @@ func newAudioAnalyser(f func(uint32), g string) *AudioAnalyser {
 			fCapHue:            310,
 			bufferLength:       1024 * 2,
 			bufferLengthUseful: 1024,
-			freqArrayL:         7,
+			freqArrayL:         4,
 			damp:               true,
 			smooth:             true,
 			smoothA:            0.73,
-			creatVis:           true,
+			creatVis:           false,
 			gradName:           g,
 		},
 		u: &AudioAnalysisUnits{
