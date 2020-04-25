@@ -248,6 +248,10 @@ func (aa AudioAnalyser) StartAnalysis() {
 	}
 }
 
+func (aa AudioAnalyser) StopAnalysis() {
+	aA.u.stopSig <- true
+}
+
 // Generates a new analyser object with default configuration
 func newAudioAnalyser(f func(uint32), g string) *AudioAnalyser {
 	return &AudioAnalyser{

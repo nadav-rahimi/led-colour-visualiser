@@ -107,16 +107,10 @@ func SetupUI() {
 
 	// Button to start visualisation
 	visualise_button := ui.NewButton("start")
-	visualise_button.OnClicked(func(b *ui.Button) {
-		go aA.StartAnalysis()
-	})
 	vbox.Append(visualise_button, false)
 
 	// Button to stop visualisation
 	stop_button := ui.NewButton("stop")
-	stop_button.OnClicked(func(b *ui.Button) {
-		aA.u.stopSig <- true
-	})
 	vbox.Append(stop_button, false)
 
 	// Gradient combobox
@@ -184,6 +178,16 @@ func SetupUI() {
 		}
 	})
 	optionshbox.Append(dampbox, false)
+
+	// Defined here so the devicebox variable is in scope meaning it can be disabled on start of analysis
+	visualise_button.OnClicked(func(b *ui.Button) {
+		devicecbox.Disable()
+		go aA.StartAnalysis()
+	})
+	stop_button.OnClicked(func(b *ui.Button) {
+		aA.StopAnalysis()
+		devicecbox.Enable()
+	})
 
 	mainwin.Show()
 }

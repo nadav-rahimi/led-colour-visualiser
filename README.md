@@ -21,11 +21,13 @@
 - [ ] Send the data via bluetooth to arduino
 - [x] Ability to disable graphing
 - [x] Create gui for program to decide which option to enable/disable and ability to choose gradients and ability to choose input device
+- [ ] Ability to edit and create gradients from within the app
 
 #### Fixes
 - [x] Reduce the processing of data to improve memory usage and speed- [ ] Document the whole codebase
 - [x] Speed up interpolation and dampening
 - [x] Modularise code into functions
+- [x] Switching the audio device does not actually change sound, the StartPortAudio function needs to be reinitialised
 - [ ] Finish documentation
 - [ ] Implement a median/kalman filter
 - [ ] Remove the use of too many pointers
