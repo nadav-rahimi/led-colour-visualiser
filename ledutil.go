@@ -8,3 +8,13 @@ func chk(err error) {
 		log.Panic(err)
 	}
 }
+
+// Slice functions
+func pos(s []string, value string) int {
+	for p, v := range s {
+		if v == value {
+			return p
+		}
+	}
+	return -1
+}

@@ -3,6 +3,7 @@ package lcv
 import (
 	"errors"
 	"github.com/lucasb-eyer/go-colorful"
+	"sort"
 )
 
 // BOX COLOUR IMPLEMENTATION
@@ -62,51 +63,65 @@ func MustParseHex(s string) colorful.Color {
 
 // Functions which returns a gradient function based on its name
 func getGradientTable(s string) (GradientTable, error) {
-	switch s {
-	case "shabjdeed":
-		return GradientTable{
-			{MustParseHex("#020024"), 0.0},
-			{MustParseHex("#ad63f4"), 0.35},
-			{MustParseHex("#00d4ff"), 1.0},
-		}, nil
-	case "weeknd":
-		return GradientTable{
-			//{MustParseHex("#ff0202"), 0.0},
-			//{MustParseHex("#ff0258"), 0.03},
-			{MustParseHex("#5202fc"), 0.00},
-			{MustParseHex("#ff0074"), 0.9},
-			//{MustParseHex("#ff0000"), 1.0},
-		}, nil
-	case "smiths":
-		return GradientTable{
-			{MustParseHex("#ff0202"), 0},
-			{MustParseHex("#ff0202"), 0.1},
-			{MustParseHex("#ff8d00"), 0.3},
-			{MustParseHex("#fff400"), 0.5},
-			{MustParseHex("#f1ff00"), 0.8},
-			{MustParseHex("#A4ff00"), 1.0},
-		}, nil
-	case "starboy":
-		return GradientTable{
-			//{MustParseHex("#1a0406"), 0.0},
-			{MustParseHex("#1152cb"), 0.0},
-			{MustParseHex("#1152cb"), 0.05},
-			{MustParseHex("#e4032f"), 0.1},
-			{MustParseHex("#f6c507"), 0.55},
-			//{MustParseHex("#faf4e6"), 0.7},
-			{MustParseHex("#faf6cb"), 1.0},
-			//{MustParseHex("#faf4e6"), 1.0},
-		}, nil
-	case "franklake":
-		return GradientTable{
-			//{MustParseHex("#007dfe"), 0},
-			{MustParseHex("#ff7303"), 0},
-			{MustParseHex("#ff7303"), 0.1},
-			{MustParseHex("#ffa7e1"), 0.5},
-			{MustParseHex("#faf4e6"), 1.0},
-		}, nil
+	if val, ok := gradients[s]; ok {
+		return val, nil
 	}
 
 	return GradientTable{}, errors.New("Gradient name incorrect")
+}
 
+// Gradients
+var gradients = map[string]GradientTable{
+	"starboy": GradientTable{
+		//{MustParseHex("#1a0406"), 0.0},
+		{MustParseHex("#1152cb"), 0.0},
+		{MustParseHex("#1152cb"), 0.05},
+		{MustParseHex("#e4032f"), 0.1},
+		{MustParseHex("#f6c507"), 0.55},
+		//{MustParseHex("#faf4e6"), 0.7},
+		{MustParseHex("#faf6cb"), 1.0},
+		//{MustParseHex("#faf4e6"), 1.0},
+	},
+	"franklake": GradientTable{
+		//{MustParseHex("#007dfe"), 0},
+		{MustParseHex("#ff7303"), 0},
+		{MustParseHex("#ff7303"), 0.1},
+		{MustParseHex("#ffa7e1"), 0.5},
+		{MustParseHex("#faf4e6"), 1.0},
+	},
+	"smiths": GradientTable{
+		{MustParseHex("#ff0202"), 0},
+		{MustParseHex("#ff0202"), 0.1},
+		{MustParseHex("#ff8d00"), 0.3},
+		{MustParseHex("#fff400"), 0.5},
+		{MustParseHex("#f1ff00"), 0.8},
+		{MustParseHex("#A4ff00"), 1.0},
+	},
+	"weeknd": GradientTable{
+		//{MustParseHex("#ff0202"), 0.0},
+		//{MustParseHex("#ff0258"), 0.03},
+		{MustParseHex("#5202fc"), 0.00},
+		{MustParseHex("#ff0074"), 0.9},
+		//{MustParseHex("#ff0000"), 1.0},
+	},
+	"shabjdeed": GradientTable{
+		{MustParseHex("#020024"), 0.0},
+		{MustParseHex("#ad63f4"), 0.35},
+		{MustParseHex("#00d4ff"), 1.0},
+	},
+}
+
+func gradientList() []string {
+	keys := make([]string, 0, len(gradients))
+	for k := range gradients {
+		keys = append(keys, k)
+	}
+	keys = append(keys, "default")
+	sort.Strings(keys)
+
+	return keys
+}
+
+func getGradientName(i int) string {
+	return gradientList()[i]
 }

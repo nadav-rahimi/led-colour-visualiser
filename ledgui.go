@@ -4,6 +4,7 @@ import (
 	"github.com/andlabs/ui"
 	_ "github.com/andlabs/ui/winmanifest"
 	"math/rand"
+	"strings"
 )
 
 // Box wrapper which surrounds the square changing colour
@@ -16,7 +17,7 @@ var rand_color = rand.Uint32()
 var colored_area = areaHandler{area_color: &rand_color}
 
 // The audio analyser which the ui uses
-var aA = newAudioAnalyser(colored_area.changeColourUINT32, "starboy")
+var aA = newAudioAnalyser(colored_area.changeColourUINT32, "")
 
 // UI Functions
 func mkSolidBrush(color uint32, alpha float64) *ui.DrawBrush {
@@ -74,7 +75,8 @@ func (ah areaHandler) changeColourUINT32(c uint32) {
 
 // Initialises and constructs the UI window
 func SetupUI() {
-	mainwin := ui.NewWindow("LED Colour Visualiser", 480, 480, false)
+	// Create the main UI window
+	mainwin := ui.NewWindow("LED Colour Visualiser", 625, 480, false)
 	mainwin.SetMargined(true)
 	mainwin.OnClosing(func(*ui.Window) bool {
 		mainwin.Destroy()
@@ -86,23 +88,102 @@ func SetupUI() {
 		return true
 	})
 
+	// Create the hbox for the visualiser
 	hbox := ui.NewHorizontalBox()
 	hbox.SetPadded(true)
 	mainwin.SetChild(hbox)
+
+	// Vbox for the program settings
+	vbox := ui.NewVerticalBox()
+	vbox.SetPadded(true)
+	hbox.Append(vbox, false)
+
+	// Adding the visualiser to the hbox
 	coloured_square = ui.NewArea(colored_area)
 	hbox.Append(coloured_square, true)
 
+	// execution controls label
+	vbox.Append(ui.NewLabel("start/stop controls:"), false)
+
+	// Button to start visualisation
 	visualise_button := ui.NewButton("start")
 	visualise_button.OnClicked(func(b *ui.Button) {
 		go aA.StartAnalysis()
 	})
-	hbox.Append(visualise_button, false)
+	vbox.Append(visualise_button, false)
 
+	// Button to stop visualisation
 	stop_button := ui.NewButton("stop")
 	stop_button.OnClicked(func(b *ui.Button) {
 		aA.u.stopSig <- true
 	})
-	hbox.Append(stop_button, false)
+	vbox.Append(stop_button, false)
+
+	// Gradient combobox
+	vbox.Append(ui.NewLabel("choose gradient:"), false)
+	gradientcbox := ui.NewCombobox()
+	for _, name := range gradientList() {
+		gradientcbox.Append(name)
+	}
+	gradientcbox.SetSelected(pos(gradientList(), "default"))
+	gradientcbox.OnSelected(func(c *ui.Combobox) {
+		if getGradientName(gradientcbox.Selected()) == "default" {
+			aA.u.gtUsed = false
+		} else {
+			aA.u.gtUsed = true
+			aA.u.aaGT = gradients[getGradientName(gradientcbox.Selected())]
+		}
+	})
+	vbox.Append(gradientcbox, false)
+
+	// Audio device combobox
+	vbox.Append(ui.NewLabel("audio device:"), false)
+	devicecbox := ui.NewCombobox()
+	for i, name := range getInputDevices() {
+		devicecbox.Append(name)
+		if strings.HasPrefix(name, "Line 1") {
+			devicecbox.SetSelected(i)
+		}
+	}
+	devicecbox.OnSelected(func(c *ui.Combobox) {
+		aA.param.inputDeviceName = getInputDevices()[devicecbox.Selected()]
+	})
+	aA.param.inputDeviceName = getInputDevices()[devicecbox.Selected()]
+	vbox.Append(devicecbox, false)
+
+	// Options hbox
+	vbox.Append(ui.NewLabel("visualisation options:"), false)
+	optionshbox := ui.NewHorizontalBox()
+	hbox.SetPadded(true)
+	vbox.Append(optionshbox, false)
+
+	// Smoothing Checkbox
+	smoothbox := ui.NewCheckbox("Smoothing")
+	if aA.param.smooth {
+		smoothbox.SetChecked(true)
+	}
+	smoothbox.OnToggled(func(c *ui.Checkbox) {
+		if c.Checked() {
+			aA.param.smooth = true
+		} else {
+			aA.param.smooth = false
+		}
+	})
+	optionshbox.Append(smoothbox, false)
+
+	// Dampening Checkbox
+	dampbox := ui.NewCheckbox("Dampening")
+	if aA.param.damp {
+		dampbox.SetChecked(true)
+	}
+	dampbox.OnToggled(func(c *ui.Checkbox) {
+		if c.Checked() {
+			aA.param.damp = true
+		} else {
+			aA.param.damp = false
+		}
+	})
+	optionshbox.Append(dampbox, false)
 
 	mainwin.Show()
 }

@@ -17,10 +17,10 @@
 - [x] Ability to enable/disable dampening
 - [x] Abiity for custom colour range
 - [x] Add logging
-- [ ] Ability to choose device to receive input from 
+- [x] Ability to choose device to receive input from 
 - [ ] Send the data via bluetooth to arduino
 - [x] Ability to disable graphing
-- [ ] Create gui for program to decide which option to enable/disable and ability to choose gradients and ability to choose input device
+- [x] Create gui for program to decide which option to enable/disable and ability to choose gradients and ability to choose input device
 
 #### Fixes
 - [x] Reduce the processing of data to improve memory usage and speed- [ ] Document the whole codebase

@@ -2,7 +2,6 @@ package lcv
 
 import (
 	"./fftsingle"
-	"fmt"
 	_ "github.com/andlabs/ui/winmanifest"
 	"github.com/gordonklaus/portaudio"
 	"github.com/lucasb-eyer/go-colorful"
@@ -52,6 +51,8 @@ type AudioAnalysisParams struct {
 	creatVis bool
 	// The name of the gradient to use for audio colouring
 	gradName string
+	// THe start of the name of the sound input device which portaudio reads from
+	inputDeviceName string
 }
 
 // Stores values the analyser uses during computation
@@ -137,7 +138,6 @@ func (aa AudioAnalyser) updateFreq() {
 // Begins analysing audio from an audio stream
 func (aa AudioAnalyser) StartAnalysis() {
 	// Check the gradient table exists if one is to be used
-	fmt.Println(aa.param.gradName)
 	if len(aa.param.gradName) > 0 {
 		var err error
 		aa.u.aaGT, err = getGradientTable(aa.param.gradName)
@@ -158,7 +158,7 @@ func (aa AudioAnalyser) StartAnalysis() {
 	var inpDev, outDev *portaudio.DeviceInfo
 	for _, d := range devices {
 		if d.HostApi.Name == "MME" {
-			if strings.HasPrefix(d.Name, "Line 1") {
+			if strings.HasPrefix(d.Name, aa.param.inputDeviceName) {
 				if d.MaxInputChannels > 0 {
 					inpDev = d
 				}
@@ -264,6 +264,7 @@ func newAudioAnalyser(f func(uint32), g string) *AudioAnalyser {
 			smoothA:            0.73,
 			creatVis:           false,
 			gradName:           g,
+			inputDeviceName:    "Line 1",
 		},
 		u: &AudioAnalysisUnits{
 			stopSig: make(chan bool),
@@ -271,4 +272,24 @@ func newAudioAnalyser(f func(uint32), g string) *AudioAnalyser {
 		lg: &AudioAnalysisLogs{},
 		cb: f,
 	}
+}
+
+// Get portaudio devices available
+func getInputDevices() []string {
+	portaudio.Initialize()
+	defer portaudio.Terminate()
+
+	devices, err := portaudio.Devices()
+	chk(err)
+
+	names := make([]string, 0)
+	for _, d := range devices {
+		if d.HostApi.Name == "MME" {
+			if d.MaxInputChannels > 0 {
+				names = append(names, d.Name)
+			}
+		}
+	}
+
+	return names
 }
