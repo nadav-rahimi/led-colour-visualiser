@@ -62,17 +62,17 @@ func MustParseHex(s string) colorful.Color {
 }
 
 // Functions which returns a gradient function based on its name
-func getGradientTable(s string) (GradientTable, error) {
+func getGradientTable(s string) (*GradientTable, error) {
 	if val, ok := gradients[s]; ok {
 		return val, nil
 	}
 
-	return GradientTable{}, errors.New("Gradient name incorrect")
+	return &GradientTable{}, errors.New("Gradient name incorrect")
 }
 
-// Gradients
-var gradients = map[string]GradientTable{
-	"starboy": GradientTable{
+// Gradients available to users hardcoded into the application
+var gradients = map[string]*GradientTable{
+	"starboy": &GradientTable{
 		//{MustParseHex("#1a0406"), 0.0},
 		{MustParseHex("#1152cb"), 0.0},
 		{MustParseHex("#1152cb"), 0.05},
@@ -82,14 +82,14 @@ var gradients = map[string]GradientTable{
 		{MustParseHex("#faf6cb"), 1.0},
 		//{MustParseHex("#faf4e6"), 1.0},
 	},
-	"franklake": GradientTable{
+	"franklake": &GradientTable{
 		//{MustParseHex("#007dfe"), 0},
 		{MustParseHex("#ff7303"), 0},
 		{MustParseHex("#ff7303"), 0.1},
 		{MustParseHex("#ffa7e1"), 0.5},
 		{MustParseHex("#faf4e6"), 1.0},
 	},
-	"smiths": GradientTable{
+	"smiths": &GradientTable{
 		{MustParseHex("#ff0202"), 0},
 		{MustParseHex("#ff0202"), 0.1},
 		{MustParseHex("#ff8d00"), 0.3},
@@ -97,20 +97,21 @@ var gradients = map[string]GradientTable{
 		{MustParseHex("#f1ff00"), 0.8},
 		{MustParseHex("#A4ff00"), 1.0},
 	},
-	"weeknd": GradientTable{
+	"weeknd": &GradientTable{
 		//{MustParseHex("#ff0202"), 0.0},
 		//{MustParseHex("#ff0258"), 0.03},
 		{MustParseHex("#5202fc"), 0.00},
 		{MustParseHex("#ff0074"), 0.9},
 		//{MustParseHex("#ff0000"), 1.0},
 	},
-	"shabjdeed": GradientTable{
+	"shabjdeed": &GradientTable{
 		{MustParseHex("#020024"), 0.0},
 		{MustParseHex("#ad63f4"), 0.35},
 		{MustParseHex("#00d4ff"), 1.0},
 	},
 }
 
+// Returns a string slice of the names of the hardcoded gradients
 func gradientList() []string {
 	keys := make([]string, 0, len(gradients))
 	for k := range gradients {
@@ -122,6 +123,7 @@ func gradientList() []string {
 	return keys
 }
 
+// Returns the name of a gradient at a given index of the gradient list
 func getGradientName(i int) string {
 	return gradientList()[i]
 }

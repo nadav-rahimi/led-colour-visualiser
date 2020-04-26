@@ -13,10 +13,14 @@ import (
 
 // The Audio Analyser
 type AudioAnalyser struct {
+	// Parameters to initialise the analyser
 	param *AudioAnalysisParams
-	u     *AudioAnalysisUnits
-	lg    *AudioAnalysisLogs
-	cb    func(uint32)
+	// The units the analyser uses during processing
+	u *AudioAnalysisUnits
+	// Contains the slices which the analyser logs to
+	lg *AudioAnalysisLogs
+	// The callback function which the analyser calls with the hue of the frequency
+	cb func(uint32)
 }
 
 // Parameters for setting up the analyser
@@ -57,23 +61,42 @@ type AudioAnalysisParams struct {
 
 // Stores values the analyser uses during computation
 type AudioAnalysisUnits struct {
-	farr     []int
-	c        *int
+	// Array holding the past few max frequencies used for
+	// damping
+	farr []int
+	// Counter for farr used to update it without constantly
+	// shifting the array, check the dampFreqs function for
+	// more reference
+	c *int
+	// The old frequency from one audio chunk before, used
+	// to smooth the processing
 	old_freq *int
-	f        *int
-	index    int
+	// The frequency with the highest magnitude
+	f *int
+	// For each audio chunk, this is the index in the bfft
+	// where the frequency with the loudest magnitude is
+	// found
+	index int
+	// This represents the difference in frequency between
+	// each index of the bfft array
 	fBinSize int
-	bfft     []complex64
-	gtUsed   bool
-	aaGT     GradientTable
+	// Buffer to hold the calculated FFT of the audio stream
+	bfft []complex64
+	// Enables or disables the use of custom gradients
+	gtUsed bool
+	// The gradient table used for custom gradients
+	aaGT *GradientTable
 	// Stop signal
 	stopSig chan bool
 }
 
 // The slices which the analyser logs to for graphing
 type AudioAnalysisLogs struct {
+	// Buffer to hold the original calculated frequency for each audio chunk
 	freqLog []int
+	// Buffer to hold the damped frequency for each audio chunk
 	dampLog []int
+	// Buffer to hold the smoothed frequency for each audio chunk
 	smthLog []int
 }
 
@@ -112,6 +135,7 @@ func (aa AudioAnalyser) colourUINT32() uint32 {
 func (aa AudioAnalyser) dampFreqs() {
 	(aa.u.farr)[*aa.u.c] = *aa.u.f
 	*aa.u.c++
+	// Modulus of the counter is taken so farr can be updated without shifting
 	*aa.u.c = *aa.u.c % aa.param.freqArrayL
 
 	var total int = 0
@@ -122,7 +146,8 @@ func (aa AudioAnalyser) dampFreqs() {
 	*aa.u.f = total / aa.param.freqArrayL
 }
 
-// Smooths the frequencies, alternative damping method
+// Smooths the frequencies, alternative damping method, the larger alpha the more
+// the old freq is weighted, alpha is [0, 1]
 func (aa AudioAnalyser) smoothFreqs(alpha float64) {
 	(*aa.u.f) = int(alpha*float64(*aa.u.old_freq) + (1-alpha)*float64(*aa.u.f))
 }
@@ -130,6 +155,7 @@ func (aa AudioAnalyser) smoothFreqs(alpha float64) {
 // Updates the f with the value of the f with the highest magnitude
 func (aa AudioAnalyser) updateFreq() {
 	*aa.u.f = aa.u.fBinSize * aa.u.index
+	// After the cap range our ears dont hear a difference so no use to visualise the cap
 	if float64(*aa.u.f) > aa.param.fCap {
 		*aa.u.f = int(aa.param.fCap)
 	}
@@ -151,7 +177,7 @@ func (aa AudioAnalyser) StartAnalysis() {
 
 	buffer := make([]float32, aa.param.bufferLength)
 
-	// Get the Virtual Audio Cable input device
+	// Get the input device
 	devices, err := portaudio.Devices()
 	chk(err)
 
@@ -229,7 +255,7 @@ func (aa AudioAnalyser) StartAnalysis() {
 		// Calling the callback function with the colour value
 		aa.cb(aa.colourUINT32())
 
-		// Make sig part of port audio
+		// The analyser is stopped through the sig channel
 		select {
 		case <-aa.u.stopSig:
 			breakLoop = true
@@ -244,10 +270,12 @@ func (aa AudioAnalyser) StartAnalysis() {
 	chk(stream.Stop())
 	if aa.param.creatVis {
 		names := []string{"Original F", "Smoothed F", "Damped F"}
+		// Start and end times are taken to find the elapsed time and scale the width of the graph generated
 		createGraph(names, endTime.Sub(startTime), &aa.lg.freqLog, &aa.lg.smthLog, &aa.lg.dampLog)
 	}
 }
 
+// Stops analysis of the audio stream
 func (aa AudioAnalyser) StopAnalysis() {
 	aA.u.stopSig <- true
 }
@@ -278,7 +306,7 @@ func newAudioAnalyser(f func(uint32), g string) *AudioAnalyser {
 	}
 }
 
-// Get portaudio devices available
+// Get portaudio input devices available
 func getInputDevices() []string {
 	portaudio.Initialize()
 	defer portaudio.Terminate()
