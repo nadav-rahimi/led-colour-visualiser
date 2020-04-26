@@ -88,6 +88,8 @@ type AudioAnalysisUnits struct {
 	aaGT *GradientTable
 	// Stop signal
 	stopSig chan bool
+	// States whether the analyser is running
+	isRunning bool
 }
 
 // The slices which the analyser logs to for graphing
@@ -163,6 +165,8 @@ func (aa AudioAnalyser) updateFreq() {
 
 // Begins analysing audio from an audio stream
 func (aa AudioAnalyser) StartAnalysis() {
+	aa.u.isRunning = true
+
 	// Check the gradient table exists if one is to be used
 	if len(aa.param.gradName) > 0 {
 		var err error
@@ -266,6 +270,7 @@ func (aa AudioAnalyser) StartAnalysis() {
 			break
 		}
 	}
+	aa.u.isRunning = false
 	endTime := time.Now()
 	chk(stream.Stop())
 	if aa.param.creatVis {
@@ -277,7 +282,10 @@ func (aa AudioAnalyser) StartAnalysis() {
 
 // Stops analysis of the audio stream
 func (aa AudioAnalyser) StopAnalysis() {
-	aA.u.stopSig <- true
+	if aa.u.isRunning {
+		aa.u.stopSig <- true
+		aa.u.isRunning = false
+	}
 }
 
 // Generates a new analyser object with default configuration

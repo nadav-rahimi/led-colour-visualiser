@@ -29,6 +29,7 @@
 - [x] Modularise code into functions
 - [x] Switching the audio device does not actually change sound, the StartPortAudio function needs to be reinitialised
 - [ ] Finish documentation
+- [ ] New ico file
 - [ ] Remove the use of too many pointers
 - [ ] Reduce type conversions as much as possible
 - [ ] Set icon for the .exe - https://stackoverflow.com/questions/25602600/how-do-you-set-the-application-icon-in-golang
