@@ -1,6 +1,9 @@
 package lcv
 
-import "log"
+import (
+	"log"
+	"math/rand"
+)
 
 // Checks the error and panics if one occurred
 func chk(err error) {
@@ -27,4 +30,9 @@ func intpos(s []int, value int) int {
 		}
 	}
 	return -1
+}
+
+// Generates a random number
+func random(min, max int) int {
+	return rand.Intn(max-min) + min
 }

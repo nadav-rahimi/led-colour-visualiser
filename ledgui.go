@@ -228,7 +228,7 @@ func makeVisualisationPage() ui.Control {
 	hbox.Append(coloured_square, true)
 
 	// execution controls label
-	vbox.Append(ui.NewLabel("start/stop controls:"), false)
+	vbox.Append(ui.NewLabel("main controls:"), false)
 
 	// Button to start visualisation
 	visualise_button := ui.NewButton("start")
@@ -326,6 +326,29 @@ func makeVisualisationPage() ui.Control {
 	})
 	optionshbox.Append(cgbox, false)
 
+	// Option to decide whether to send data over a udp connection to a localhost websocket
+	vbox.Append(ui.NewLabel("connection options:"), false)
+	udpledcntrl := ui.NewCheckbox("send data to led lights") // TODO underline or bold the heading text
+	if aA.udph.shouldsend {
+		udpledcntrl.SetChecked(true)
+	}
+	udpledcntrl.OnToggled(func(c *ui.Checkbox) {
+		if c.Checked() {
+			if !aA.udph.running {
+				aA.udph.client.start()
+				aA.udph.running = true
+			}
+			aA.udph.shouldsend = true
+		} else {
+			if aA.udph.running {
+				aA.udph.client.closeConnection()
+				aA.udph.running = false
+			}
+			aA.udph.shouldsend = false
+		}
+	})
+	vbox.Append(udpledcntrl, false)
+
 	// Defined here so the devicebox variable is in scope meaning it can be disabled on start of analysis
 	visualise_button.OnClicked(func(b *ui.Button) {
 		devicecbox.Disable()
@@ -334,6 +357,8 @@ func makeVisualisationPage() ui.Control {
 	stop_button.OnClicked(func(b *ui.Button) {
 		aA.StopAnalysis()
 		devicecbox.Enable()
+		aA.udph.client.closeConnection()
+		udpledcntrl.SetChecked(false)
 	})
 
 	return hbox

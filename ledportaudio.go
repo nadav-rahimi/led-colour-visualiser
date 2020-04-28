@@ -2,6 +2,7 @@ package lcv
 
 import (
 	"./fftsingle"
+	"fmt"
 	_ "github.com/andlabs/ui/winmanifest"
 	"github.com/gordonklaus/portaudio"
 	"github.com/lucasb-eyer/go-colorful"
@@ -21,6 +22,8 @@ type AudioAnalyser struct {
 	lg *AudioAnalysisLogs
 	// The callback function which the analyser calls with the hue of the frequency
 	cb func(uint32)
+	// The handler for the udp stream
+	udph *AudioAnalysisUDPHandler
 }
 
 // Parameters for setting up the analyser
@@ -100,6 +103,16 @@ type AudioAnalysisLogs struct {
 	dampLog []int
 	// Buffer to hold the smoothed frequency for each audio chunk
 	smthLog []int
+}
+
+// Handles the sending of the colour data to the arduino through a udp stream
+type AudioAnalysisUDPHandler struct {
+	// The UDP client
+	client *udpC
+	// Decides if the client should attempt to send a message over the UDP stream
+	shouldsend bool
+	// States whether the UDP client is running or not
+	running bool
 }
 
 // From the fft array, the index of the f with the highest magnitude is returned
@@ -259,6 +272,11 @@ func (aa AudioAnalyser) StartAnalysis() {
 		// Calling the callback function with the colour value
 		aa.cb(aa.colourUINT32())
 
+		// Sending the value through the UDP stream
+		if aa.udph.shouldsend {
+			aa.udph.client.sendMsg(fmt.Sprint(aa.colourUINT32()))
+		}
+
 		// The analyser is stopped through the sig channel
 		select {
 		case <-aa.u.stopSig:
@@ -311,6 +329,10 @@ func newAudioAnalyser(f func(uint32), g string) *AudioAnalyser {
 		},
 		lg: &AudioAnalysisLogs{},
 		cb: f,
+		udph: &AudioAnalysisUDPHandler{
+			client:     newUdpC("6969"),
+			shouldsend: false,
+		},
 	}
 }
 
