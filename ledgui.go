@@ -2,6 +2,7 @@ package lcv
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/andlabs/ui"
 	_ "github.com/andlabs/ui/winmanifest"
 	"github.com/lucasb-eyer/go-colorful"
@@ -132,6 +133,7 @@ func (gh *gradientareahandler) CalculateGradientTable() {
 			indxs := nMinPosition(gh.sliders, 3)
 
 			r, g, b, _ := gh.cboxes[indxs[0]].Color()
+			fmt.Println(r, g, b)
 			r2, g2, b2, _ := gh.cboxes[indxs[1]].Color()
 			r3, g3, b3, _ := gh.cboxes[indxs[2]].Color()
 			gh.gt = &GradientTable{

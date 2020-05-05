@@ -1,8 +1,8 @@
 package main
 
 import (
-	"../../led-colour-visualiser"
 	"github.com/andlabs/ui"
+	"github.com/nadav-rahimi/led-colour-visualiser"
 )
 
 // Main
