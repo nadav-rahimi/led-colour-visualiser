@@ -4,6 +4,7 @@ import (
 	"fmt"
 	_ "github.com/andlabs/ui/winmanifest"
 	"github.com/gordonklaus/portaudio"
+	colorful "github.com/lucasb-eyer/go-colorful"
 	"github.com/nadav-rahimi/led-colour-visualiser/fftsingle"
 	"log"
 	"math/cmplx"
