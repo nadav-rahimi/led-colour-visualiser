@@ -18,7 +18,7 @@
 package fftsingle
 
 import (
-	"../dspsingle"
+	"github.com/nadav-rahimi/led-colour-visualiser/dspsingle"
 )
 
 // FFTReal returns the forward FFT of the real-valued slice.

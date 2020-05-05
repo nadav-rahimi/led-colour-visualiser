@@ -44,8 +44,8 @@ func createGraph(seriesnames []string, elapsed_t time.Duration, freqseries ...*[
 	// Styles the graph
 	graph.Height = 400 * 3
 	graph.Width = int(60 * elapsed_t.Seconds())
-	graph.XAxis.TickStyle.Hidden = true
-	graph.YAxisSecondary.Style.Hidden = true
+	//graph.XAxis.TickStyle.Hidden = true
+	//graph.YAxisSecondary.Style.Hidden = true
 
 	// Adding the legend to the graph
 	graph.Elements = []chart.Renderable{

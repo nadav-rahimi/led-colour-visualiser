@@ -17,7 +17,7 @@
 package fftsingle
 
 import (
-	"../dspsingle"
+	"github.com/nadav-rahimi/led-colour-visualiser/dspsingle"
 	"math"
 	"sync"
 )

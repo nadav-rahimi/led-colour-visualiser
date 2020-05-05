@@ -1,11 +1,10 @@
 package lcv
 
 import (
-	"./fftsingle"
 	"fmt"
 	_ "github.com/andlabs/ui/winmanifest"
 	"github.com/gordonklaus/portaudio"
-	"github.com/lucasb-eyer/go-colorful"
+	"github.com/nadav-rahimi/led-colour-visualiser/fftsingle"
 	"log"
 	"math/cmplx"
 	"strings"
